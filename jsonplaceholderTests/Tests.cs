@@ -1,24 +1,23 @@
-using NUnit.Framework;
 using TestData;
 using Helpers;
 using RestSharp;
 using System.IO;
 using Newtonsoft.Json;
+using Xunit;
 
 namespace Tests
 {
-    [TestFixture]
     public class AddRemoveUpdateTests
     {
         RequestHelper RequestHelper { get; set; }
 
-        [SetUp]
-        public void Init()
+        public AddRemoveUpdateTests()
         {
             RequestHelper = new RequestHelper();
         }
 
-        [TestCase(2, "New Post Title")]
+        [Theory]
+        [InlineData(2, "New Post Title")]
         public void AddPostTest(int userId, string title)
         {
             Posts posts = RequestHelper.GetResponse<Posts>(TestDataUrls.Posts);
@@ -31,12 +30,13 @@ namespace Tests
 
             Post response = RequestHelper.GetResponse<Post>(TestDataUrls.Posts);
 
-            Assert.AreEqual(title, response.Title);
-            Assert.AreEqual(userId, response.UserId);
-            Assert.AreEqual(posts.Count + 1, response.Id);
+            Assert.Equal(title, response.Title);
+            Assert.Equal(userId, response.UserId);
+            Assert.Equal(posts.Count + 1, response.Id);
         }
 
-        [TestCase(50, 2, "Updated Post Title")]
+        [Theory]
+        [InlineData(50, 2, "Updated Post Title")]
         public void UpdatePostTest(int postId, int userId, string title)
         {
             Post post = new Post() { Id = postId, UserId = userId, Title = title };
@@ -47,72 +47,69 @@ namespace Tests
 
             Post response = RequestHelper.GetResponse<Post>(Path.Combine(TestDataUrls.Posts, postId.ToString()));
 
-            Assert.AreEqual(post.Title, response.Title);
-            Assert.AreEqual(post.UserId, response.UserId);
+            Assert.Equal(post.Title, response.Title);
+            Assert.Equal(post.UserId, response.UserId);
         }
 
-        [TestCase(50)]
+        [Theory]
+        [InlineData(50)]
         public void DeletePostTest(int postId)
         {
             RequestHelper.SetMethod(Method.DELETE);
 
             Post response = RequestHelper.GetResponse<Post>(Path.Combine(TestDataUrls.Posts, postId.ToString()));
 
-            Assert.AreEqual(0, response.Id);
+            Assert.Equal(0, response.Id);
         }
     }
 
-
-    [TestFixture]
     public class CommentsTests
     {
         RequestHelper RequestHelper { get; set; }
         Comments Comments { get; set; }
 
-        [OneTimeSetUp]
-        public void Init()
+        public CommentsTests()
         {
             RequestHelper = new RequestHelper();
             Comments = RequestHelper.GetResponse<Comments>(TestDataUrls.Comments);
         }
 
-        [TestCase("ipsum dolorem", "Marcia@name.biz")]
-        [TestCase("ipsum dolorem", "Jackeline@eva.tv")]
+        [Theory]
+        [InlineData("ipsum dolorem", "Marcia@name.biz")]
+        [InlineData("ipsum dolorem", "Jackeline@eva.tv")]
         public void EmailCheckByCommentContent(string bodyContent, string expectedEmail)
         {
             string actualEmail = Comments.Find(x => x.Body.Contains(bodyContent)).Email;
 
-            Assert.AreEqual(expectedEmail, actualEmail);
+            Assert.Equal(expectedEmail, actualEmail);
         }
     }
 
-    [TestFixture]
     public class PostsTests
     {
         RequestHelper RequestHelper { get; set; }
         Posts Posts { get; set; }
         Users Users { get; set; }
 
-        [OneTimeSetUp]
-        public void Init()
+        public PostsTests()
         {
             RequestHelper = new RequestHelper();
             Posts = RequestHelper.GetResponse<Posts>(TestDataUrls.Posts);
             Users = RequestHelper.GetResponse<Users>(TestDataUrls.Users);
         }
 
-        [TestCase("eos dolorem iste accusantium est eaque quam", "Patricia Lebsack")]
-        [TestCase("eos dolorem iste accusantium est eaque quam", "Someone Else")]
+        [Theory]
+        [InlineData("eos dolorem iste accusantium est eaque quam", "Patricia Lebsack")]
+        [InlineData("eos dolorem iste accusantium est eaque quam", "Someone Else")]
         public void CheckUserByPostTitle(string titleContent, string expectedUser)
         {
             int actualUserId = Posts.Find(x => x.Title.Contains(titleContent)).UserId;
             string actualUser = Users.Find(x => x.Id == actualUserId).Name;
 
-            Assert.AreEqual(expectedUser, actualUser);
+            Assert.Equal(expectedUser, actualUser);
         }
     }
 
-    [TestFixture]
     public class PhotosTests
     {
         RequestHelper RequestHelper { get; set; }
@@ -120,8 +117,7 @@ namespace Tests
         Users Users { get; set; }
         Albums Albums { get; set; }
 
-        [OneTimeSetUp]
-        public void Init()
+        public PhotosTests()
         {
             RequestHelper = new RequestHelper();
             Photos = RequestHelper.GetResponse<Photos>(TestDataUrls.Photos);
@@ -129,8 +125,9 @@ namespace Tests
             Albums = RequestHelper.GetResponse<Albums>(TestDataUrls.Albums);
         }
 
-        [TestCase("ad et natus qui", "Sincere@april.biz")]
-        [TestCase("ad et natus qui", "Anotherone@april.biz")]
+        [Theory]
+        [InlineData("ad et natus qui", "Sincere@april.biz")]
+        [InlineData("ad et natus qui", "Anotherone@april.biz")]
         public void CheckUserByPhotoTitle(string photoTitle, string expectedEmail)
         {
             int albumId = Photos.Find(x => x.Title.Contains(photoTitle)).AlbumId;
@@ -138,11 +135,12 @@ namespace Tests
 
             string actualEmail = Users.Find(x => x.Id == userId).Email;
 
-            Assert.AreEqual(expectedEmail, actualEmail);
+            Assert.Equal(expectedEmail, actualEmail);
         }
 
-        [TestCase(4, "BinaryTestReferences", "magenta600x600.png")]
-        [TestCase(4, "BinaryTestReferences", "magenta600x600_corrupted.png")]
+        [Theory]
+        [InlineData(4, "BinaryTestReferences", "magenta600x600.png")]
+        [InlineData(4, "BinaryTestReferences", "magenta600x600_corrupted.png")]
         public void CheckPhotoUsingRefImage(int imageId, string refImageFolder, string refImageFile)
         {
 
@@ -153,27 +151,26 @@ namespace Tests
 
             RequestHelper.SaveImage(response.Url, actualImage);
 
-            Assert.IsTrue(BinaryFileComparer.FilesAreEqual(expectedImage, actualImage));
+            Assert.True(BinaryFileComparer.FilesAreEqual(expectedImage, actualImage));
         }
     }
 
-    [TestFixture]
     public class TodosTests
     {
         RequestHelper RequestHelper { get; set; }
         Todos Todos { get; set; }
         Users Users { get; set; }
 
-        [OneTimeSetUp]
-        public void Init()
+        public TodosTests()
         {
             RequestHelper = new RequestHelper();
             Todos = RequestHelper.GetResponse<Todos>(TestDataUrls.Todos);
             Users = RequestHelper.GetResponse<Users>(TestDataUrls.Users);
         }
 
-        [TestCase("Leanne Graham", "Ervin Howell", 3, true)]
-        [TestCase("Leanne Graham", "Ervin Howell", 2, true)]
+        [Theory]
+        [InlineData("Leanne Graham", "Ervin Howell", 3, true)]
+        [InlineData("Leanne Graham", "Ervin Howell", 2, true)]
         public void CompareTodosBetweenUsers(string user1, string user2, int expectedDiff, bool completed)
         {
             int user1Id = Users.Find(x => x.Name == user1).Id;
@@ -184,7 +181,7 @@ namespace Tests
 
             int actualDiff = user1CompletedCount - user2CompletedCount;
 
-            Assert.Greater(actualDiff, expectedDiff);
+            Assert.True(actualDiff > expectedDiff);
         }
     }
 
