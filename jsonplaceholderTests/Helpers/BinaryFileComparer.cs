@@ -5,10 +5,9 @@ using System.Text;
 
 namespace Helpers
 {
-    public static class BinaryFileComparer
+    public class BinaryFileComparer : IEqualityComparer<string>
     {
-
-        public static bool FilesAreEqual(string file1, string file2)
+        public bool Equals(string file1, string file2)
         {
             byte[] file1bytes = File.ReadAllBytes(file1);
             byte[] file2bytes = File.ReadAllBytes(file2);
@@ -27,6 +26,11 @@ namespace Helpers
             }
 
             return false;
+        }
+
+        public int GetHashCode(string obj)
+        {
+            throw new NotImplementedException();
         }
     }
 }

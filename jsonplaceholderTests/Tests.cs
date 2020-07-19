@@ -151,7 +151,9 @@ namespace Tests
 
             RequestHelper.SaveImage(response.Url, actualImage);
 
-            Assert.True(BinaryFileComparer.FilesAreEqual(expectedImage, actualImage));
+            var comparer = new BinaryFileComparer();
+
+            Assert.Equal(expectedImage, actualImage, comparer);
         }
     }
 
